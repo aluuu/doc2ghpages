@@ -1,0 +1,33 @@
+#!/bin/bash
+
+checkout_git_branch () {
+    local BRANCH=$1
+    git checkout $BRANCH
+}
+
+omit_git_changes () {
+    git checkout -- ./
+}
+
+build_doc () {
+    make clean && make doc
+}
+
+replace_branch_contents () {
+    local TMP_DOC=/tmp/ocamldoc-build
+    local PWD=$(pwd)
+    mkdir -p $TMP_DOC
+    cp -R --no-preserve=links $PWD/api.docdir/* $TMP_DOC
+    find ./ | grep -v './.git/*' | tail -n +2 | xargs rm -rf '{}'
+    mv $TMP_DOC/* $PWD
+}
+
+main(){
+    checkout_git_branch "master"
+    omit_git_changes
+    build_doc
+    checkout_git_branch "gh-pages"
+    replace_branch_contents
+}
+
+main
